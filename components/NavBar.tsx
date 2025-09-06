@@ -1,67 +1,94 @@
 import React from 'react';
-import type { Screen } from '../types';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { SCREEN } from '../constants';
-import { Home, MessageSquare, Users, Shield, BookOpen } from './Icons';
+import { Home, Map, Users, Shield, BookOpen } from './Icons';
 
-interface NavBarProps {
-  activeScreen: Screen;
-  setActiveScreen: (screen: Screen) => void;
-}
-
-const NavButton: React.FC<{
-  label: string;
-  icon: React.ReactNode;
-  isActive: boolean;
-  onClick: () => void;
-}> = ({ label, icon, isActive, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`flex flex-col items-center justify-center w-full transition-colors duration-200 ${
-      isActive ? 'text-[#4A41C3]' : 'text-black/50 hover:text-[#4A41C3]'
-    }`}
+const NavButton = ({ label, icon, isActive, onClick }) => (
+  <TouchableOpacity
+    onPress={onClick}
+    style={styles.navButton}
   >
-    {icon}
-    <span className="text-xs mt-1">{label}</span>
-  </button>
+    <View style={{ opacity: isActive ? 1 : 0.5 }}>
+      {icon}
+    </View>
+    <Text style={[styles.navLabel, isActive ? styles.activeLabel : styles.inactiveLabel]}>
+      {label}
+    </Text>
+  </TouchableOpacity>
 );
 
-const NavBar: React.FC<NavBarProps> = ({ activeScreen, setActiveScreen }) => {
+const NavBar = ({ activeScreen, setActiveScreen }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto">
-        <div className="bg-white/80 backdrop-blur-sm border-t border-black/10 flex justify-around p-2">
+    <View style={styles.navContainer}>
+      <View style={styles.navBar}>
         <NavButton
             label="Home"
-            icon={<Home className="w-6 h-6" />}
+            icon={<Home width={24} height={24} color={activeScreen === SCREEN.HOME ? '#4A41C3' : '#333'} />}
             isActive={activeScreen === SCREEN.HOME}
             onClick={() => setActiveScreen(SCREEN.HOME)}
         />
         <NavButton
-            label="Guardian"
-            icon={<Shield className="w-6 h-6" />}
-            isActive={activeScreen === SCREEN.GUARDIAN}
-            onClick={() => setActiveScreen(SCREEN.GUARDIAN)}
-        />
-        <NavButton
-            label="Chat"
-            icon={<MessageSquare className="w-6 h-6" />}
-            isActive={activeScreen === SCREEN.CHAT}
-            onClick={() => setActiveScreen(SCREEN.CHAT)}
+            label="Map"
+            icon={<Map width={24} height={24} color={activeScreen === SCREEN.MAP ? '#4A41C3' : '#333'} />}
+            isActive={activeScreen === SCREEN.MAP}
+            onClick={() => setActiveScreen(SCREEN.MAP)}
         />
         <NavButton
             label="Contacts"
-            icon={<Users className="w-6 h-6" />}
+            icon={<Users width={24} height={24} color={activeScreen === SCREEN.CONTACTS ? '#4A41C3' : '#333'} />}
             isActive={activeScreen === SCREEN.CONTACTS}
             onClick={() => setActiveScreen(SCREEN.CONTACTS)}
         />
          <NavButton
             label="Hub"
-            icon={<BookOpen className="w-6 h-6" />}
+            icon={<BookOpen width={24} height={24} color={activeScreen === SCREEN.HUB ? '#4A41C3' : '#333'} />}
             isActive={activeScreen === SCREEN.HUB}
             onClick={() => setActiveScreen(SCREEN.HUB)}
         />
-        </div>
-    </div>
+        <NavButton
+            label="Guardian"
+            icon={<Shield width={24} height={24} color={activeScreen === SCREEN.GUARDIAN ? '#4A41C3' : '#333'} />}
+            isActive={activeScreen === SCREEN.GUARDIAN}
+            onClick={() => setActiveScreen(SCREEN.GUARDIAN)}
+        />
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  navContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    maxWidth: 500,
+    alignSelf: 'center',
+  },
+  navBar: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+    paddingBottom: Platform.OS === 'ios' ? 16 : 8, // Safe area for iOS home indicator
+  },
+  navButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navLabel: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  activeLabel: {
+    color: '#4A41C3',
+  },
+  inactiveLabel: {
+    color: 'rgba(0,0,0,0.5)',
+  }
+});
 
 export default NavBar;

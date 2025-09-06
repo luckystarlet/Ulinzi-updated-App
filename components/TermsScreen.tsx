@@ -1,58 +1,81 @@
 import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { ArrowLeft } from './Icons';
 
-interface TermsScreenProps {
-  onBack: () => void;
-}
+const Section = ({ title, children }) => (
+  <>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    <Text style={styles.paragraph}>{children}</Text>
+  </>
+);
 
-const TermsScreen: React.FC<TermsScreenProps> = ({ onBack }) => {
+const TermsScreen = ({ onBack }) => {
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center mb-6">
-        <button onClick={onBack} className="p-2 -ml-2 mr-2 text-black/80 hover:text-black">
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <h2 className="text-2xl font-bold text-[#4A41C3]">Terms & Conditions</h2>
-      </div>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <ArrowLeft width={24} height={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Terms & Conditions</Text>
+      </View>
 
-      <div className="flex-grow overflow-y-auto pr-2 text-black/80 space-y-4 text-sm">
-        <p className="font-semibold text-black">Last updated: [Date]</p>
+      <ScrollView style={styles.contentContainer}>
+        <Text style={styles.lastUpdated}>Last updated: [Date]</Text>
         
-        <p>
+        <Text style={styles.paragraph}>
           Welcome to Ulinzi. These terms and conditions outline the rules and regulations for the use of Ulinzi's Application.
-        </p>
+        </Text>
 
-        <h3 className="font-bold text-black/90 pt-2">1. Acceptance of Terms</h3>
-        <p>
+        <Section title="1. Acceptance of Terms">
           By accessing this app, we assume you accept these terms and conditions. Do not continue to use Ulinzi if you do not agree to all of the terms and conditions stated on this page.
-        </p>
+        </Section>
 
-        <h3 className="font-bold text-black/90 pt-2">2. License to Use</h3>
-        <p>
+        <Section title="2. License to Use">
           Unless otherwise stated, Ulinzi and/or its licensors own the intellectual property rights for all material on Ulinzi. All intellectual property rights are reserved. You may access this from Ulinzi for your own personal use subjected to restrictions set in these terms and conditions.
-        </p>
+        </Section>
         
-        <h3 className="font-bold text-black/90 pt-2">3. User Responsibilities</h3>
-        <p>
+        <Section title="3. User Responsibilities">
             You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account.
-        </p>
+        </Section>
         
-        <h3 className="font-bold text-black/90 pt-2">4. Emergency Services</h3>
-        <p>
+        <Section title="4. Emergency Services">
             Ulinzi is a tool to assist in emergency situations but is not a replacement for contacting emergency services directly (e.g., dialing 911, 999, 112). We do not guarantee that your emergency contacts will receive or respond to any alert.
-        </p>
+        </Section>
 
-        <h3 className="font-bold text-black/90 pt-2">5. Disclaimer</h3>
-        <p>
+        <Section title="5. Technology and Third-Party Services">
+            Ulinzi relies on robust third-party services to deliver its core safety features. By using the app, you acknowledge the use of these services:
+            {'\n\n'}
+            <Text style={styles.bold}>Maps & Location:</Text> We use the Google Maps API to accurately determine and share your GPS location during an emergency.
+            {'\n\n'}
+            <Text style={styles.bold}>WhatsApp Notifications:</Text> For users with a data connection, emergency alerts may also be sent via the WhatsApp API for fast, free, and reliable delivery.
+            {'\n\n'}
+            <Text style={styles.bold}>Push Notifications:</Text> Emergency alerts are sent as push notifications via Firebase Cloud Messaging for immediate delivery when an internet connection is available.
+            {'\n\n'}
+            <Text style={styles.bold}>SMS & Calls Fallback:</Text> To ensure maximum reliability, if a push notification cannot be sent, the app will automatically fall back to sending an SMS alert using industry-leading providers like Twilio or Africa’s Talking.
+        </Section>
+
+        <Section title="6. Disclaimer">
           The materials on Ulinzi's app are provided on an 'as is' basis. Ulinzi makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
-        </p>
+        </Section>
         
-        <p className="pt-4">
+        <Text style={[styles.paragraph, { paddingTop: 16 }]}>
             [... More sections on Privacy Policy, Limitation of Liability, Governing Law, etc. would be included here.]
-        </p>
-      </div>
-    </div>
+        </Text>
+      </ScrollView>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
+  backButton: { padding: 8, marginLeft: -8, marginRight: 8 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#4A41C3' },
+  contentContainer: { flex: 1 },
+  lastUpdated: { fontWeight: '600', color: 'black', marginBottom: 16 },
+  paragraph: { color: 'rgba(0,0,0,0.8)', fontSize: 14, lineHeight: 20 },
+  sectionTitle: { fontWeight: 'bold', color: 'rgba(0,0,0,0.9)', paddingTop: 8, marginBottom: 8, fontSize: 16 },
+  bold: { fontWeight: 'bold' },
+});
 
 export default TermsScreen;

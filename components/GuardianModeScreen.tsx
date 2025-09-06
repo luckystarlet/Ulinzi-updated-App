@@ -1,54 +1,158 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
 import { ShieldCheck, ShieldOff } from './Icons';
 
-interface GuardianModeScreenProps {
-  isGuardianModeActive: boolean;
-  onToggle: () => void;
-}
+const GuardianModeScreen = ({ isGuardianModeActive, onToggle }) => {
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-const GuardianModeScreen: React.FC<GuardianModeScreenProps> = ({ isGuardianModeActive, onToggle }) => {
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.1, duration: 1500, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1500, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+      ])
+    );
+    if (isGuardianModeActive) {
+      animation.start();
+    } else {
+      animation.stop();
+      pulseAnim.setValue(1);
+    }
+    return () => animation.stop();
+  }, [isGuardianModeActive, pulseAnim]);
+
   return (
-    <div className="flex flex-col items-center text-center h-full pt-10">
-      <h2 className="text-2xl font-bold text-[#4A41C3] mb-4">Guardian Mode</h2>
-      <p className="text-black/70 mb-8 max-w-xs">
-        When active, Ulinzi runs in the background to detect danger signals using your device's sensors.
-      </p>
+    <View style={styles.container}>
+      <Text style={styles.title}>Guardian Mode</Text>
+      <Text style={styles.description}>
+        When activated, Guardian Mode automatically shares your location and listens for sounds of distress. If danger is detected, it sends an SOS via WhatsApp, push notifications, and an SMS fallback if you are offline.
+      </Text>
 
-      <div className={`relative w-64 h-64 flex items-center justify-center rounded-full border-4 ${isGuardianModeActive ? 'border-[#4A41C3]' : 'border-black/20'}`}>
+      <View style={[styles.circle, isGuardianModeActive ? styles.circleActive : styles.circleInactive]}>
         {isGuardianModeActive && (
           <>
-            <div className="absolute inset-0 rounded-full bg-[#4A41C3]/10 animate-ping"></div>
-            <div className="absolute inset-2 rounded-full border-2 border-[#4A41C3]/30"></div>
+            <Animated.View style={[styles.pulse, { transform: [{ scale: pulseAnim }] }]} />
+            <View style={styles.innerCircle} />
           </>
         )}
         {isGuardianModeActive ? (
-          <ShieldCheck className="w-32 h-32 text-[#4A41C3]" />
+          <ShieldCheck width={128} height={128} color="#4A41C3" />
         ) : (
-          <ShieldOff className="w-32 h-32 text-black/40" />
+          <ShieldOff width={128} height={128} color="rgba(0,0,0,0.4)" />
         )}
-      </div>
+      </View>
 
-      <div className="mt-8">
-        <p className="text-lg font-semibold">Status: 
-          <span className={isGuardianModeActive ? 'text-[#4A41C3]' : 'text-black/50'}>
+      <View style={styles.statusContainer}>
+        <Text style={styles.statusText}>
+          Status: 
+          <Text style={isGuardianModeActive ? styles.statusActive : styles.statusPaused}>
             {isGuardianModeActive ? ' Active & Monitoring' : ' Paused'}
-          </span>
-        </p>
-        <p className="text-sm text-black/50 mt-1">
-          {isGuardianModeActive ? 'AI sensors are listening for distress signals.' : 'Activate to start background monitoring.'}
-        </p>
-      </div>
+          </Text>
+        </Text>
+        <Text style={styles.statusDescription}>
+          {isGuardianModeActive ? 'Live location is being shared and ambient audio is being analyzed.' : 'Activate to start background monitoring.'}
+        </Text>
+      </View>
 
-      <button
-        onClick={onToggle}
-        className={`mt-12 font-bold py-3 px-8 rounded-lg text-white transition-colors duration-300 ${
-          isGuardianModeActive ? 'bg-red-600 hover:bg-red-700' : 'bg-[#4A41C3] hover:bg-[#3A31A3]'
-        }`}
+      <TouchableOpacity
+        onPress={onToggle}
+        style={[styles.toggleButton, isGuardianModeActive ? styles.deactivateButton : styles.activateButton]}
       >
-        {isGuardianModeActive ? 'Pause Guardian Mode' : 'Activate Guardian Mode'}
-      </button>
-    </div>
+        <Text style={styles.buttonText}>
+          {isGuardianModeActive ? 'Pause Guardian Mode' : 'Activate Guardian Mode'}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: 40,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4A41C3',
+    marginBottom: 16,
+  },
+  description: {
+    color: 'rgba(0,0,0,0.7)',
+    marginBottom: 32,
+    textAlign: 'center',
+    maxWidth: 320,
+  },
+  circle: {
+    width: 256,
+    height: 256,
+    borderRadius: 128,
+    borderWidth: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  circleActive: {
+    borderColor: '#4A41C3',
+  },
+  circleInactive: {
+    borderColor: 'rgba(0,0,0,0.2)',
+  },
+  pulse: {
+    position: 'absolute',
+    width: 256,
+    height: 256,
+    borderRadius: 128,
+    backgroundColor: 'rgba(74, 65, 195, 0.1)',
+  },
+  innerCircle: {
+    position: 'absolute',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    borderWidth: 2,
+    borderColor: 'rgba(74, 65, 195, 0.3)',
+  },
+  statusContainer: {
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  statusText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+  },
+  statusActive: {
+    color: '#4A41C3',
+  },
+  statusPaused: {
+    color: 'rgba(0,0,0,0.5)',
+  },
+  statusDescription: {
+    fontSize: 14,
+    color: 'rgba(0,0,0,0.5)',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  toggleButton: {
+    marginTop: 48,
+    fontWeight: 'bold',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+  },
+  activateButton: {
+    backgroundColor: '#4A41C3',
+  },
+  deactivateButton: {
+    backgroundColor: '#dc2626',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});
 
 export default GuardianModeScreen;

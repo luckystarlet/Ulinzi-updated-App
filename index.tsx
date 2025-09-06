@@ -1,16 +1,7 @@
-
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { AppRegistry } from 'react-native';
 import App from './App';
 
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
+// In a real React Native project, the app name would typically come from app.json
+const appName = 'Ulinzi: AI Safety Companion';
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+AppRegistry.registerComponent(appName, () => App);

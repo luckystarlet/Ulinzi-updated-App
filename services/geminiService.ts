@@ -1,6 +1,4 @@
-
-import { GoogleGenAI, Chat } from "@google/genai";
-import type { ChatMessage } from '../types';
+import { GoogleGenAI } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
 
@@ -10,10 +8,10 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-let chatInstance: Chat | null = null;
-let currentLanguage: 'en' | 'sw' = 'en';
+let chatInstance = null;
+let currentLanguage = 'en';
 
-const getSystemInstruction = (language: 'en' | 'sw'): string => {
+const getSystemInstruction = (language) => {
   if (language === 'sw') {
     return `Wewe ni Ulinzi, msaidizi wa AI mwenye huruma na mtaalamu wa usalama, sheria, na afya ya akili nchini Kenya. Kazi yako ni kutoa ushauri wa haraka, wazi, na wenye kutia moyo. Unazungumza Kiswahili sanifu na rahisi kueleweka. Jibu maswali kuhusu:
 1.  **Vidokezo vya Usalama:** Toa ushauri wa vitendo wa jinsi ya kuwa salama.
@@ -28,7 +26,7 @@ Daima uwe na sauti ya utulivu, uhakikisho, na uwezo.`;
 Maintain a supportive and professional demeanor at all times.`;
 };
 
-const getChat = (language: 'en' | 'sw', history: ChatMessage[]): Chat => {
+const getChat = (language, history) => {
     if (!chatInstance || currentLanguage !== language) {
         currentLanguage = language;
         const pastMessages = history.map(msg => ({
@@ -49,10 +47,10 @@ const getChat = (language: 'en' | 'sw', history: ChatMessage[]): Chat => {
 };
 
 export const getChatbotResponse = async (
-    prompt: string, 
-    language: 'en' | 'sw', 
-    history: ChatMessage[]
-): Promise<string> => {
+    prompt, 
+    language, 
+    history
+) => {
   try {
     const chat = getChat(language, history);
     // FIX: Pass an object to sendMessage as per API guidelines.

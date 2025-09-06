@@ -1,41 +1,26 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Shield } from './Icons';
 
-const WelcomeScreen = ({ setAuthScreen, language }) => {
-  const content = {
-    en: {
-      subtitle: 'Your Digital Bodyguard',
-      createAccount: 'Create Account',
-      signIn: 'Sign In',
-    },
-    sw: {
-      subtitle: 'Mlinzi Wako wa Kidijitali',
-      createAccount: 'Fungua Akaunti',
-      signIn: 'Ingia',
-    }
-  };
-  
-  const t = content[language];
-
+const LanguageSelectionScreen = ({ onSelect }) => {
   return (
     <View style={styles.container}>
       <Shield width={96} height={96} color="#4A41C3" />
-      <Text style={styles.title}>ULINZI</Text>
-      <Text style={styles.subtitle}>{t.subtitle}</Text>
+      <Text style={styles.title}>Choose Your Language</Text>
+      <Text style={styles.subtitle}>Chagua Lugha Yako</Text>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          onPress={() => setAuthScreen('signup')}
+          onPress={() => onSelect('en')}
           style={[styles.button, styles.primaryButton]}
         >
-          <Text style={styles.primaryButtonText}>{t.createAccount}</Text>
+          <Text style={styles.primaryButtonText}>Continue in English</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => setAuthScreen('signin')}
+          onPress={() => onSelect('sw')}
           style={[styles.button, styles.secondaryButton]}
         >
-          <Text style={styles.secondaryButtonText}>{t.signIn}</Text>
+          <Text style={styles.secondaryButtonText}>Endelea kwa Kiswahili</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -49,9 +34,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 36,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#000',
+    color: 'black',
     marginBottom: 8,
     marginTop: 16,
   },
@@ -79,7 +64,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   secondaryButton: {
-    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.5)',
   },
@@ -90,4 +74,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WelcomeScreen;
+export default LanguageSelectionScreen;

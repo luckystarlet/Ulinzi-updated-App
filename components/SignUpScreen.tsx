@@ -1,87 +1,140 @@
 import React, { useState } from 'react';
-import type { AuthScreen } from '../types';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { ArrowLeft } from './Icons';
 
-interface SignUpScreenProps {
-  onSignUpSuccess: () => void;
-  setAuthScreen: (screen: AuthScreen) => void;
-  onNavigateToTerms: () => void;
-}
-
-const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSignUpSuccess, setAuthScreen, onNavigateToTerms }) => {
+const SignUpScreen = ({ onSignUpSuccess, setAuthScreen, onNavigateToTerms, language }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simulate a successful sign-up
+  const content = {
+    en: {
+      title: 'Create Account',
+      subtitle: 'Join Ulinzi to stay safe and protected.',
+      namePlaceholder: 'Full Name',
+      emailPlaceholder: 'Email Address',
+      passwordPlaceholder: 'Password',
+      agreeToTerms: 'I have read and agree to the',
+      termsLink: 'Terms & Conditions',
+      button: 'Sign Up',
+      footerText: 'Already have an account?',
+      footerLink: 'Sign In',
+    },
+    sw: {
+      title: 'Fungua Akaunti',
+      subtitle: 'Jiunge na Ulinzi ili uwe salama na ulindwe.',
+      namePlaceholder: 'Jina Kamili',
+      emailPlaceholder: 'Anwani ya Barua Pepe',
+      passwordPlaceholder: 'Nenosiri',
+      agreeToTerms: 'Nimesoma na ninakubali',
+      termsLink: 'Sheria na Masharti',
+      button: 'Jisajili',
+      footerText: 'Tayari una akaunti?',
+      footerLink: 'Ingia',
+    }
+  };
+  const t = content[language];
+
+  const handleSubmit = () => {
     if (name && email && password) {
-      console.log('Signing up with:', { name, email, password });
-      onSignUpSuccess();
+      onSignUpSuccess({ name, email });
     } else {
       alert('Please fill in all fields.');
     }
   };
 
   return (
-    <div className="flex flex-col h-full pt-8">
-      <h2 className="text-3xl font-bold text-black mb-2">Create Account</h2>
-      <p className="text-black/60 mb-8">Join Ulinzi to stay safe and protected.</p>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.header}>
+         <TouchableOpacity onPress={() => setAuthScreen('welcome')} style={styles.backButton}>
+            <ArrowLeft width={24} height={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.title}>{t.title}</Text>
+      </View>
+      <Text style={styles.subtitle}>{t.subtitle}</Text>
 
-      <form onSubmit={handleSubmit} className="flex-grow flex flex-col">
-        <div className="space-y-4">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Full Name"
-            className="w-full bg-gray-100 text-black placeholder-black/50 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4A41C3] border border-gray-300"
-            required
-          />
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email Address"
-            className="w-full bg-gray-100 text-black placeholder-black/50 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4A41C3] border border-gray-300"
-            required
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="w-full bg-gray-100 text-black placeholder-black/50 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4A41C3] border border-gray-300"
-            required
-          />
-        </div>
+      <View style={styles.form}>
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          placeholder={t.namePlaceholder}
+          style={styles.input}
+          placeholderTextColor="#6B7280"
+        />
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder={t.emailPlaceholder}
+          style={styles.input}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          placeholderTextColor="#6B7280"
+        />
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          placeholder={t.passwordPlaceholder}
+          style={styles.input}
+          secureTextEntry
+          placeholderTextColor="#6B7280"
+        />
+      </View>
 
-        <p className="text-xs text-black/50 mt-4">
-          By creating an account, you agree to our{' '}
-          <button type="button" onClick={onNavigateToTerms} className="underline hover:text-[#4A41C3]">
-            Terms & Conditions
-          </button>
-          .
-        </p>
-        
-        <div className="mt-auto">
-            <button
-                type="submit"
-                className="w-full bg-[#4A41C3] hover:bg-[#3A31A3] text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300"
-            >
-                Sign Up
-            </button>
+      <View style={styles.termsContainer}>
+          <TouchableOpacity onPress={() => setAgreedToTerms(!agreedToTerms)} style={[styles.checkbox, agreedToTerms && styles.checkboxChecked]}>
+            {agreedToTerms && <Text style={styles.checkboxTick}>✓</Text>}
+          </TouchableOpacity>
+          <Text style={styles.termsText}>
+              {t.agreeToTerms}{' '}
+              <Text onPress={onNavigateToTerms} style={styles.termsLink}>
+                  {t.termsLink}
+              </Text>
+              .
+          </Text>
+      </View>
+      
+      <View style={styles.footer}>
+          <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={!agreedToTerms}
+              style={[styles.button, styles.primaryButton, !agreedToTerms && styles.disabledButton]}
+          >
+              <Text style={styles.primaryButtonText}>{t.button}</Text>
+          </TouchableOpacity>
 
-            <p className="text-center text-sm text-black/60 mt-4">
-                Already have an account?{' '}
-                <button type="button" onClick={() => setAuthScreen('signin')} className="font-semibold text-[#4A41C3] hover:underline">
-                    Sign In
-                </button>
-            </p>
-        </div>
-      </form>
-    </div>
+          <Text style={styles.footerText}>
+              {t.footerText}{' '}
+              <Text onPress={() => setAuthScreen('signin')} style={styles.footerLink}>
+                  {t.footerLink}
+              </Text>
+          </Text>
+      </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flexGrow: 1, paddingTop: 32 },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  backButton: { padding: 8, marginLeft: -8, marginRight: 8 },
+  title: { fontSize: 30, fontWeight: 'bold', color: 'black' },
+  subtitle: { color: '#6B7280', marginBottom: 32, marginLeft: 44 },
+  form: { gap: 16 },
+  input: { width: '100%', backgroundColor: '#F3F4F6', color: 'black', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#D1D5DB' },
+  termsContainer: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 16 },
+  checkbox: { width: 20, height: 20, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 4, marginRight: 8, marginTop: 2, justifyContent: 'center', alignItems: 'center' },
+  checkboxChecked: { backgroundColor: '#4A41C3', borderColor: '#4A41C3' },
+  checkboxTick: { color: 'white', fontWeight: 'bold' },
+  termsText: { flex: 1, fontSize: 12, color: '#6B7280' },
+  termsLink: { textDecorationLine: 'underline', color: '#4A41C3' },
+  footer: { marginTop: 'auto', paddingTop: 20 },
+  button: { width: '100%', paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
+  primaryButton: { backgroundColor: '#4A41C3' },
+  primaryButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  disabledButton: { backgroundColor: 'rgba(0,0,0,0.2)' },
+  footerText: { textAlign: 'center', fontSize: 14, color: '#6B7280', marginTop: 16 },
+  footerLink: { fontWeight: '600', color: '#4A41C3' },
+});
 
 export default SignUpScreen;

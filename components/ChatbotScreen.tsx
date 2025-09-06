@@ -1,23 +1,43 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform, PermissionsAndroid, Alert } from 'react-native';
 import { getChatbotResponse } from '../services/geminiService';
-import type { ChatMessage } from '../types';
-import { PaperPlane } from './Icons';
+import { PaperPlane, Microphone, ArrowLeft } from './Icons';
 
-const ChatbotScreen: React.FC = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+// In a real app, you would use a library like @react-native-voice/voice.
+// This is a placeholder to show the required logic.
+const checkAndRequestMicrophonePermission = async () => {
+    if (Platform.OS === 'android') {
+        try {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+                {
+                    title: 'Microphone Permission',
+                    message: 'Ulinzi needs access to your microphone to enable voice input.',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                },
+            );
+            return granted === PermissionsAndroid.RESULTS.GRANTED;
+        } catch (err) {
+            console.warn(err);
+            return false;
+        }
+    }
+    // iOS permissions are handled in Info.plist
+    return true;
+};
+
+
+const ChatbotScreen = ({ language, onBack }) => {
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'sw'>('en');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(scrollToBottom, [messages]);
+  const [isListening, setIsListening] = useState(false);
+  const flatListRef = useRef(null);
 
   useEffect(() => {
-    const welcomeMessage: ChatMessage = {
+    const welcomeMessage = {
       role: 'model',
       text: language === 'en' 
         ? 'Hello! I am Ulinzi, your AI safety assistant. How can I help you today? You can ask for safety tips, legal help, or counselling.' 
@@ -29,82 +49,143 @@ const ChatbotScreen: React.FC = () => {
 
   const handleSend = async () => {
     if (input.trim() === '' || isLoading) return;
+    
+    // Stop listening if it's active
+    if (isListening) {
+      setIsListening(false);
+      // In a real app: Voice.stop();
+    }
 
-    const userMessage: ChatMessage = { role: 'user', text: input };
+    const userMessage = { role: 'user', text: input };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     const responseText = await getChatbotResponse(input, language, messages);
     
-    const modelMessage: ChatMessage = { role: 'model', text: responseText };
+    const modelMessage = { role: 'model', text: responseText };
     setMessages(prev => [...prev, modelMessage]);
     setIsLoading(false);
   };
   
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSend();
+  const handleMicClick = async () => {
+    const hasPermission = await checkAndRequestMicrophonePermission();
+    if (!hasPermission) {
+        Alert.alert('Permission Denied', 'Please grant microphone access in your device settings to use voice input.');
+        return;
+    }
+    
+    if (isListening) {
+      setIsListening(false);
+      // Real app: Voice.stop();
+    } else {
+      setInput('');
+      setIsListening(true);
+      // Real app: Voice.start(language === 'sw' ? 'sw-KE' : 'en-US');
+      // Voice.onSpeechResults = (e) => setInput(e.value?.[0] || '');
+      // Voice.onSpeechEnd = () => setIsListening(false);
+      // Voice.onSpeechError = (e) => { console.error(e); setIsListening(false); };
     }
   };
-  
-  const handleLanguageToggle = () => {
-      setLanguage(prev => prev === 'en' ? 'sw' : 'en');
-      setMessages([]);
-  }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-4 pb-2 border-b border-black/10">
-        <h2 className="text-2xl font-bold text-[#4A41C3]">AI Support Chat</h2>
-        <div className="flex items-center space-x-2 bg-black/10 rounded-full p-1">
-            <button onClick={handleLanguageToggle} className={`px-3 py-1 text-sm rounded-full transition-colors ${language === 'en' ? 'bg-[#4A41C3] text-white' : 'text-black/70'}`}>EN</button>
-            <button onClick={handleLanguageToggle} className={`px-3 py-1 text-sm rounded-full transition-colors ${language === 'sw' ? 'bg-[#4A41C3] text-white' : 'text-black/70'}`}>SW</button>
-        </div>
-      </div>
+    <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <ArrowLeft width={24} height={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>AI Support Chat</Text>
+      </View>
       
-      <div className="flex-grow overflow-y-auto pr-2 space-y-4">
-        {messages.map((msg, index) => (
-          <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${msg.role === 'user' ? 'bg-[#4A41C3] text-white rounded-br-none' : 'bg-gray-200 text-black/90 rounded-bl-none'}`}>
-              <p className="whitespace-pre-wrap">{msg.text}</p>
-            </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-200 text-black/90 rounded-2xl rounded-bl-none px-4 py-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-[#4A41C3] rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-[#4A41C3] rounded-full animate-pulse delay-75"></div>
-                <div className="w-2 h-2 bg-[#4A41C3] rounded-full animate-pulse delay-150"></div>
-              </div>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+      <FlatList
+        ref={flatListRef}
+        data={[...messages, ...(isLoading ? [{ role: 'model', text: 'loading' }] : [])]}
+        keyExtractor={(_, index) => index.toString()}
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        renderItem={({ item }) => {
+            if (item.text === 'loading') {
+                return (
+                    <View style={styles.loadingContainer}>
+                        <View style={styles.loadingDots}>
+                            <ActivityIndicator size="small" color="#4A41C3" />
+                        </View>
+                    </View>
+                );
+            }
+            return (
+                <View style={[styles.messageRow, item.role === 'user' ? styles.userRow : styles.modelRow]}>
+                    <View style={[styles.messageBubble, item.role === 'user' ? styles.userBubble : styles.modelBubble]}>
+                        <Text style={item.role === 'user' ? styles.userText : styles.modelText}>{item.text}</Text>
+                    </View>
+                </View>
+            );
+        }}
+        style={styles.messageList}
+        contentContainerStyle={{ paddingBottom: 16 }}
+      />
 
-      <div className="mt-4 flex items-center bg-gray-200 rounded-full p-2 border border-black/20">
-        <input
-          type="text"
+
+      <View style={styles.inputContainer}>
+        <TextInput
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder={language === 'en' ? 'Type your message...' : 'Andika ujumbe wako...'}
-          className="flex-grow bg-transparent text-black placeholder-black/50 focus:outline-none px-3"
-          disabled={isLoading}
+          onChangeText={setInput}
+          onSubmitEditing={handleSend}
+          placeholder={
+            isListening 
+              ? 'Listening...' 
+              : language === 'en' 
+                ? 'Type or speak your message...' 
+                : 'Andika au ongea ujumbe wako...'
+          }
+          style={styles.input}
+          placeholderTextColor="#6B7280"
+          editable={!isLoading}
         />
-        <button
-          onClick={handleSend}
-          disabled={isLoading || input.trim() === ''}
-          className="bg-[#4A41C3] rounded-full p-2 disabled:bg-black/20 disabled:cursor-not-allowed transition-colors"
+        <TouchableOpacity
+          onPress={handleMicClick}
+          style={[styles.iconButton, isListening && styles.micListening]}
         >
-          <PaperPlane className="w-5 h-5 text-white" />
-        </button>
-      </div>
-    </div>
+          <Microphone width={20} height={20} color={isListening ? '#FFF' : '#4A41C3'} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleSend}
+          disabled={isLoading || input.trim() === ''}
+          style={[styles.iconButton, styles.sendButton, (isLoading || input.trim() === '') && styles.disabledButton]}
+        >
+          <PaperPlane width={20} height={20} color="#FFF" />
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
+
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#FFF' },
+    header: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.1)' },
+    backButton: { padding: 8, marginLeft: -8, marginRight: 8 },
+    headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#4A41C3' },
+    messageList: { flex: 1, paddingHorizontal: 8 },
+    messageRow: { flexDirection: 'row', marginVertical: 4 },
+    userRow: { justifyContent: 'flex-end' },
+    modelRow: { justifyContent: 'flex-start' },
+    messageBubble: { maxWidth: '80%', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 },
+    userBubble: { backgroundColor: '#4A41C3', borderBottomRightRadius: 4 },
+    modelBubble: { backgroundColor: '#E5E7EB', borderBottomLeftRadius: 4 },
+    userText: { color: '#FFF' },
+    modelText: { color: '#111827' },
+    loadingContainer: { flexDirection: 'row', justifyContent: 'flex-start' },
+    loadingDots: { backgroundColor: '#E5E7EB', borderRadius: 20, borderBottomLeftRadius: 4, paddingHorizontal: 16, paddingVertical: 12 },
+    inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E5E7EB', borderRadius: 999, padding: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.2)' },
+    input: { flex: 1, backgroundColor: 'transparent', color: '#000', paddingHorizontal: 12, fontSize: 16 },
+    iconButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+    micListening: { backgroundColor: '#ef4444' /* red-500 */ },
+    sendButton: { backgroundColor: '#4A41C3', marginLeft: 8 },
+    disabledButton: { backgroundColor: 'rgba(0,0,0,0.2)' },
+});
 
 export default ChatbotScreen;

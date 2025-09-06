@@ -1,8 +1,9 @@
-
 export const SCREEN = {
   HOME: 'home',
+  MAP: 'map',
   CHAT: 'chat',
   CONTACTS: 'contacts',
-  GUARDIAN: 'guardian',
   HUB: 'hub',
-} as const;
+  GUARDIAN: 'guardian',
+  PROFILE: 'profile',
+};
